@@ -3,15 +3,15 @@
 MCP Server for AI-powered web security testing using OpenRouter
 """
 # MODIFICATION START: Adjust imports
-from mcp.server.models import InitializationOptions # Keep this if it's correct
+from mcp.server.models import InitializationOptions
 from mcp.types import (
     Resource,
     Tool,
     TextContent,
     ImageContent,
     EmbeddedResource,
-    ExperimentalCapabilities,
-    NotificationOptions # Moved NotificationOptions here
+    # ExperimentalCapabilities, # Removed this import
+    NotificationOptions
 )
 # MODIFICATION END
 
@@ -22,15 +22,7 @@ from typing import Any, Dict, List, Optional
 import aiohttp
 import requests
 from mcp.server import Server
-# from mcp.server.models import InitializationOptions # Already imported above
 from mcp.server.stdio import stdio_server
-# from mcp.types import ( # Relevant parts already imported above
-#     Resource,
-#     Tool,
-#     TextContent,
-#     ImageContent,
-#     EmbeddedResource,
-# )
 import os
 from urllib.parse import urljoin, urlparse
 import time
@@ -47,12 +39,10 @@ class SecurityTestingMCPServer:
     def __init__(self):
         self.server = Server("security-testing-mcp")
         
-        # Load environment variables
         self.openrouter_api_key = os.getenv("OPENROUTER_API_KEY")
-        self.target_url = os.getenv("TARGET_URL", "http://192.168.1.100:8080")  # Update with your Proxmox VM IP
+        self.target_url = os.getenv("TARGET_URL", "http://192.168.1.100:8080")
         self.session = None
         
-        # Debug: Print environment info
         print(f"🔍 Debug Info:")
         print(f"   Current working directory: {os.getcwd()}")
         print(f"   .env file exists: {os.path.exists('.env')}")
@@ -73,7 +63,6 @@ class SecurityTestingMCPServer:
         
         @self.server.list_resources()
         async def handle_list_resources() -> List[Resource]:
-            """List available resources"""
             return [
                 Resource(
                     uri="security://target-info",
@@ -91,7 +80,6 @@ class SecurityTestingMCPServer:
         
         @self.server.read_resource()
         async def handle_read_resource(uri: str) -> str:
-            """Read a specific resource"""
             if uri == "security://target-info":
                 return json.dumps({
                     "target_url": self.target_url,
@@ -99,7 +87,6 @@ class SecurityTestingMCPServer:
                     "last_checked": time.time()
                 })
             elif uri == "security://test-results":
-                # This would return stored test results
                 return json.dumps({
                     "tests_performed": [],
                     "vulnerabilities_found": [],
@@ -110,7 +97,6 @@ class SecurityTestingMCPServer:
         
         @self.server.list_tools()
         async def handle_list_tools() -> List[Tool]:
-            """List available tools"""
             return [
                 Tool(
                     name="web_request",
@@ -214,7 +200,6 @@ class SecurityTestingMCPServer:
         
         @self.server.call_tool()
         async def handle_call_tool(name: str, arguments: Dict[str, Any]) -> List[TextContent]:
-            """Handle tool calls"""
             try:
                 if name == "web_request":
                     return await self.handle_web_request(arguments)
@@ -231,7 +216,6 @@ class SecurityTestingMCPServer:
                 return [TextContent(type="text", text=f"Error: {str(e)}")]
     
     async def handle_web_request(self, args: Dict[str, Any]) -> List[TextContent]:
-        """Handle web requests to the target application"""
         method = args.get("method", "GET")
         path = args["path"]
         headers = args.get("headers", {})
@@ -257,7 +241,7 @@ class SecurityTestingMCPServer:
                     "url": str(response.url),
                     "status_code": response.status,
                     "headers": dict(response.headers),
-                    "body": response_text[:5000],  # Truncate large responses
+                    "body": response_text[:5000],
                     "method": method
                 }
                 
@@ -270,53 +254,14 @@ class SecurityTestingMCPServer:
             return [TextContent(type="text", text=f"Request failed: {str(e)}")]
     
     async def handle_ai_analysis(self, args: Dict[str, Any]) -> List[TextContent]:
-        """Handle AI analysis via OpenRouter"""
         content = args["content"]
         analysis_type = args["analysis_type"]
         model = args.get("model", "anthropic/claude-3.5-sonnet")
         
-        # Create analysis prompt based on type
         prompts = {
-            "vulnerability_scan": f"""
-Analyze the following web application response for security vulnerabilities:
-
-{content}
-
-Look for:
-- SQL injection opportunities
-- Cross-site scripting (XSS) vulnerabilities
-- Authentication bypasses
-- Information disclosure
-- Input validation issues
-- Directory traversal possibilities
-
-Provide specific findings and potential exploit methods.
-""",
-            "response_analysis": f"""
-Analyze this HTTP response for interesting security-relevant information:
-
-{content}
-
-Focus on:
-- Error messages that reveal system information
-- Hidden form fields or parameters
-- Comments in HTML/JavaScript
-- Technology stack indicators
-- Potential attack vectors
-""",
-            "payload_generation": f"""
-Based on this web application context, generate security testing payloads:
-
-{content}
-
-Generate payloads for:
-- SQL injection testing
-- XSS testing
-- Command injection testing
-- Directory traversal testing
-
-Provide ready-to-use payloads with explanations.
-"""
+            "vulnerability_scan": f"Analyze the following web application response for security vulnerabilities:\n\n{content}\n\nLook for:\n- SQL injection opportunities\n- Cross-site scripting (XSS) vulnerabilities\n- Authentication bypasses\n- Information disclosure\n- Input validation issues\n- Directory traversal possibilities\n\nProvide specific findings and potential exploit methods.",
+            "response_analysis": f"Analyze this HTTP response for interesting security-relevant information:\n\n{content}\n\nFocus on:\n- Error messages that reveal system information\n- Hidden form fields or parameters\n- Comments in HTML/JavaScript\n- Technology stack indicators\n- Potential attack vectors",
+            "payload_generation": f"Based on this web application context, generate security testing payloads:\n\n{content}\n\nGenerate payloads for:\n- SQL injection testing\n- XSS testing\n- Command injection testing\n- Directory traversal testing\n\nProvide ready-to-use payloads with explanations."
         }
         
         prompt = prompts.get(analysis_type, f"Analyze this content for security issues:\n{content}")
@@ -329,12 +274,7 @@ Provide ready-to-use payloads with explanations.
             
             payload = {
                 "model": model,
-                "messages": [
-                    {
-                        "role": "user",
-                        "content": prompt
-                    }
-                ]
+                "messages": [{"role": "user", "content": prompt}]
             }
             
             async with aiohttp.ClientSession() as session:
@@ -356,47 +296,21 @@ Provide ready-to-use payloads with explanations.
             return [TextContent(type="text", text=f"AI analysis failed: {str(e)}")]
     
     async def handle_security_scan(self, args: Dict[str, Any]) -> List[TextContent]:
-        """Handle automated security scanning"""
         scan_type = args["scan_type"]
         target_path = args["target_path"]
         parameters = args.get("parameters", [])
         
-        # Define payloads for different scan types
         payloads = {
-            "sql_injection": [
-                "' OR '1'='1",
-                "'; DROP TABLE users; --",
-                "' UNION SELECT null, null, null--",
-                "admin'--",
-                "' OR 1=1#"
-            ],
-            "xss": [
-                "<script>alert('XSS')</script>",
-                "javascript:alert('XSS')",
-                "<img src=x onerror=alert('XSS')>",
-                "'\"><script>alert('XSS')</script>",
-                "<svg onload=alert('XSS')>"
-            ],
-            "directory_traversal": [
-                "../../../etc/passwd",
-                "..\\..\\..\\windows\\system32\\drivers\\etc\\hosts",
-                "....//....//....//etc/passwd",
-                "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"
-            ],
-            "command_injection": [
-                "; ls -la",
-                "| whoami",
-                "&& cat /etc/passwd",
-                "`id`",
-                "$(whoami)"
-            ]
+            "sql_injection": ["' OR '1'='1", "'; DROP TABLE users; --", "' UNION SELECT null, null, null--", "admin'--", "' OR 1=1#"],
+            "xss": ["<script>alert('XSS')</script>", "javascript:alert('XSS')", "<img src=x onerror=alert('XSS')>", "'\"><script>alert('XSS')</script>", "<svg onload=alert('XSS')>"],
+            "directory_traversal": ["../../../etc/passwd", "..\\..\\..\\windows\\system32\\drivers\\etc\\hosts", "....//....//....//etc/passwd", "%2e%2e%2f%2e%2e%2f%2e%2e%2fetc%2fpasswd"],
+            "command_injection": ["; ls -la", "| whoami", "&& cat /etc/passwd", "`id`", "$(whoami)"]
         }
         
         scan_payloads = payloads.get(scan_type, [])
         results = []
         
         for payload in scan_payloads:
-            # Test each parameter with each payload
             for param in parameters or ['']:
                 try:
                     url = urljoin(self.target_url, target_path)
@@ -404,7 +318,6 @@ Provide ready-to-use payloads with explanations.
                     if not self.session:
                         self.session = aiohttp.ClientSession()
                     
-                    # Try both GET and POST methods
                     for method in ['GET', 'POST']:
                         test_data = {param: payload} if param else {}
                         
@@ -416,19 +329,15 @@ Provide ready-to-use payloads with explanations.
                         ) as response:
                             response_text = await response.text()
                             
-                            # Basic vulnerability detection
                             vulnerable = False
                             if scan_type == "sql_injection":
-                                vulnerable = any(indicator in response_text.lower() for indicator in 
-                                               ["mysql", "sql syntax", "warning: mysql", "error in your sql"])
+                                vulnerable = any(indicator in response_text.lower() for indicator in ["mysql", "sql syntax", "warning: mysql", "error in your sql"])
                             elif scan_type == "xss":
                                 vulnerable = payload in response_text
                             elif scan_type == "directory_traversal":
-                                vulnerable = any(indicator in response_text for indicator in 
-                                               ["root:", "bin:", "[drivers]", "127.0.0.1"])
+                                vulnerable = any(indicator in response_text for indicator in ["root:", "bin:", "[drivers]", "127.0.0.1"])
                             elif scan_type == "command_injection":
-                                vulnerable = any(indicator in response_text for indicator in 
-                                               ["uid=", "gid=", "total ", "volume serial number"])
+                                vulnerable = any(indicator in response_text for indicator in ["uid=", "gid=", "total ", "volume serial number"])
                             
                             if vulnerable or response.status >= 500:
                                 results.append({
@@ -454,7 +363,6 @@ Provide ready-to-use payloads with explanations.
         )]
     
     async def handle_spider_application(self, args: Dict[str, Any]) -> List[TextContent]:
-        """Handle web application crawling"""
         max_depth = args.get("max_depth", 3)
         follow_external = args.get("follow_external", False)
         
@@ -475,10 +383,8 @@ Provide ready-to-use payloads with explanations.
                     if response.content_type and 'text/html' in response.content_type:
                         html_content = await response.text()
                         
-                        # Simple link extraction (you might want to use BeautifulSoup here)
                         import re
                         
-                        # Find links
                         links = re.findall(r'href=[\'"]([^\'"]*)[\'"]', html_content)
                         for link in links:
                             if link.startswith('http'):
@@ -487,7 +393,6 @@ Provide ready-to-use payloads with explanations.
                             elif link.startswith('/'):
                                 await crawl_url(urljoin(self.target_url, link), depth + 1)
                         
-                        # Find forms
                         form_matches = re.findall(r'<form[^>]*>(.*?)</form>', html_content, re.DOTALL)
                         for form in form_matches:
                             inputs = re.findall(r'<input[^>]*name=[\'"]([^\'"]*)[\'"][^>]*>', form)
@@ -519,7 +424,6 @@ Provide ready-to-use payloads with explanations.
         )]
     
     async def cleanup(self):
-        """Clean up resources"""
         if self.session:
             await self.session.close()
     
@@ -527,7 +431,6 @@ Provide ready-to-use payloads with explanations.
         """Run the MCP server"""
         try:
             async with stdio_server() as (read_stream, write_stream):
-                # MODIFICATION START: Instantiate NotificationOptions and ExperimentalCapabilities
                 await self.server.run(
                     read_stream,
                     write_stream,
@@ -535,12 +438,11 @@ Provide ready-to-use payloads with explanations.
                         server_name="security-testing-mcp",
                         server_version="1.0.0",
                         capabilities=self.server.get_capabilities(
-                            notification_options=NotificationOptions(), # Use instantiated class
-                            experimental_capabilities=ExperimentalCapabilities() # Use instantiated class
+                            notification_options=NotificationOptions(),
+                            experimental_capabilities={} # MODIFICATION: Reverted to dictionary
                         ),
                     ),
                 )
-                # MODIFICATION END
         finally:
             await self.cleanup()
 

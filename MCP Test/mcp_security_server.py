@@ -3,6 +3,8 @@
 MCP Server for AI-powered web security testing using OpenRouter
 """
 #from mcp.server.models import NotificationOptions
+from mcp.types import ServerCapabilities, NotificationOptions, ExperimentalCapabilities
+
 import asyncio
 import json
 import logging
@@ -511,21 +513,24 @@ Provide ready-to-use payloads with explanations.
         if self.session:
             await self.session.close()
     
-    async def run(self):
-        """Run the MCP server"""
-        try:
-            async with stdio_server() as (read_stream, write_stream):
-                await self.server.run(
-                    read_stream,
-                    write_stream,
-                    InitializationOptions(
-                        server_name="security-testing-mcp",
-                        server_version="1.0.0",
-                        capabilities=self.server.get_capabilities({}, {}),
+async def run(self):
+    """Run the MCP server"""
+    try:
+        async with stdio_server() as (read_stream, write_stream):
+            await self.server.run(
+                read_stream,
+                write_stream,
+                InitializationOptions(
+                    server_name="security-testing-mcp",
+                    server_version="1.0.0",
+                    capabilities=self.server.get_capabilities(
+                        NotificationOptions(),
+                        ExperimentalCapabilities()
                     ),
-                )
-        finally:
-            await self.cleanup()
+                ),
+            )
+    finally:
+        await self.cleanup()
 
 if __name__ == "__main__":
     server = SecurityTestingMCPServer()

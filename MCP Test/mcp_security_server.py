@@ -2,15 +2,16 @@
 """
 MCP Server for AI-powered web security testing using OpenRouter
 """
-# MODIFICATION START: Uncomment and ensure these imports are correct
-from mcp.server.models import NotificationOptions, InitializationOptions
+# MODIFICATION START: Adjust imports
+from mcp.server.models import InitializationOptions # Keep this if it's correct
 from mcp.types import (
     Resource,
     Tool,
     TextContent,
     ImageContent,
     EmbeddedResource,
-    ExperimentalCapabilities # Added ExperimentalCapabilities
+    ExperimentalCapabilities,
+    NotificationOptions # Moved NotificationOptions here
 )
 # MODIFICATION END
 
@@ -23,7 +24,7 @@ import requests
 from mcp.server import Server
 # from mcp.server.models import InitializationOptions # Already imported above
 from mcp.server.stdio import stdio_server
-# from mcp.types import ( # Already imported above
+# from mcp.types import ( # Relevant parts already imported above
 #     Resource,
 #     Tool,
 #     TextContent,

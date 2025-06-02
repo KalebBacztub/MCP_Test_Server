@@ -521,7 +521,7 @@ Provide ready-to-use payloads with explanations.
                     InitializationOptions(
                         server_name="security-testing-mcp",
                         server_version="1.0.0",
-                        capabilities=self.server.get_capabilities(),
+                        capabilities=self.server.get_capabilities({}, {}),
                     ),
                 )
         finally:

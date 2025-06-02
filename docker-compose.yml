@@ -1,0 +1,15 @@
+version: '3.8'
+
+services:
+  mcp-security-server:
+    build: .
+    environment:
+      - OPENROUTER_API_KEY=${OPENROUTER_API_KEY}
+      - TARGET_URL=${TARGET_URL}
+    volumes:
+      - ./logs:/app/logs
+    network_mode: "host"  # Use host network to access external targets
+    stdin_open: true
+    tty: true
+
+# No vulnerable-app service since it's running on external Proxmox VM

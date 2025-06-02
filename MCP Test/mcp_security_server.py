@@ -3,15 +3,15 @@
 MCP Server for AI-powered web security testing using OpenRouter
 """
 # MODIFICATION START: Adjust imports
-from mcp.server.models import InitializationOptions
+from mcp.server.models import InitializationOptions # Keeping this here for now
+from mcp.server import NotificationOptions # Attempting to import from mcp.server
 from mcp.types import (
     Resource,
     Tool,
     TextContent,
     ImageContent,
     EmbeddedResource,
-    # ExperimentalCapabilities, # Removed this import
-    NotificationOptions
+    # InitializationOptions # Removed from here if we try mcp.server.models first
 )
 # MODIFICATION END
 
@@ -21,12 +21,13 @@ import logging
 from typing import Any, Dict, List, Optional
 import aiohttp
 import requests
-from mcp.server import Server
+from mcp.server import Server # Already have this
 from mcp.server.stdio import stdio_server
 import os
 from urllib.parse import urljoin, urlparse
 import time
 from dotenv import load_dotenv
+
 
 # Load environment variables from .env file
 load_dotenv()

@@ -127,7 +127,7 @@ class MCPStdioClient:
         # }
         command_obj = {
             "jsonrpc": "2.0",
-            "method": "tool/call", # Common MCP method for tool calls
+            "method": "tools/call", # Common MCP method for tool calls
             "params": {
                 "name": tool_name,
                 "arguments": arguments

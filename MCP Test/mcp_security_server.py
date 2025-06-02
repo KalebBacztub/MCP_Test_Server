@@ -2,7 +2,7 @@
 """
 MCP Server for AI-powered web security testing using OpenRouter
 """
-from mcp.server.models import NotificationOptions
+#from mcp.server.models import NotificationOptions
 import asyncio
 import json
 import logging

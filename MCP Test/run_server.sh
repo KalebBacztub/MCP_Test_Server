@@ -186,14 +186,16 @@ if [ -f "debug_env.py" ]; then
     print_info "Running environment diagnostics..."
     python debug_env.py
     
-    # Ask user if they want to continue after seeing the debug output
-    echo ""
-    read -p "Do you want to continue starting the server? (y/n): " -n 1 -r
-    echo
-    if [[ ! $REPLY =~ ^[Yy]$ ]]; then
-        print_info "Exiting. Fix any issues and run again."
-        exit 0
-    fi
+    # MODIFICATION START: Comment out or remove the interactive prompt block
+    # echo ""
+    # read -p "Do you want to continue starting the server? (y/n): " -n 1 -r
+    # echo
+    # if [[ ! $REPLY =~ ^[Yy]$ ]]; then
+    #     print_info "Exiting. Fix any issues and run again."
+    #     exit 0
+    # fi
+    print_info "Proceeding to start server after diagnostics..." # Add a message
+    # MODIFICATION END
 else
     print_warning "debug_env.py not found - skipping diagnostics"
 fi

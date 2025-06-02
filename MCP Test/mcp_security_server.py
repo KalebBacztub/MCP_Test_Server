@@ -513,24 +513,24 @@ Provide ready-to-use payloads with explanations.
         if self.session:
             await self.session.close()
     
-async def run(self):
-    """Run the MCP server"""
-    try:
-        async with stdio_server() as (read_stream, write_stream):
-            await self.server.run(
-                read_stream,
-                write_stream,
-                InitializationOptions(
-                    server_name="security-testing-mcp",
-                    server_version="1.0.0",
-                    capabilities=self.server.get_capabilities(
-                        notification_options={},
-                        experimental_capabilities={}
+    async def run(self):
+        """Run the MCP server"""
+        try:
+            async with stdio_server() as (read_stream, write_stream):
+                await self.server.run(
+                    read_stream,
+                    write_stream,
+                    InitializationOptions(
+                        server_name="security-testing-mcp",
+                        server_version="1.0.0",
+                        capabilities=self.server.get_capabilities(
+                            notification_options={},
+                            experimental_capabilities={}
+                        ),
                     ),
-                ),
-            )
-    finally:
-        await self.cleanup()
+                )
+        finally:
+            await self.cleanup()
 
 if __name__ == "__main__":
     server = SecurityTestingMCPServer()

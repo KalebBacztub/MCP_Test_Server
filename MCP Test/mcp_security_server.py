@@ -2,8 +2,17 @@
 """
 MCP Server for AI-powered web security testing using OpenRouter
 """
-#from mcp.server.models import NotificationOptions
-#from mcp.types import ServerCapabilities, NotificationOptions, ExperimentalCapabilities
+# MODIFICATION START: Uncomment and ensure these imports are correct
+from mcp.server.models import NotificationOptions, InitializationOptions
+from mcp.types import (
+    Resource,
+    Tool,
+    TextContent,
+    ImageContent,
+    EmbeddedResource,
+    ExperimentalCapabilities # Added ExperimentalCapabilities
+)
+# MODIFICATION END
 
 import asyncio
 import json
@@ -12,15 +21,15 @@ from typing import Any, Dict, List, Optional
 import aiohttp
 import requests
 from mcp.server import Server
-from mcp.server.models import InitializationOptions
+# from mcp.server.models import InitializationOptions # Already imported above
 from mcp.server.stdio import stdio_server
-from mcp.types import (
-    Resource,
-    Tool,
-    TextContent,
-    ImageContent,
-    EmbeddedResource,
-)
+# from mcp.types import ( # Already imported above
+#     Resource,
+#     Tool,
+#     TextContent,
+#     ImageContent,
+#     EmbeddedResource,
+# )
 import os
 from urllib.parse import urljoin, urlparse
 import time
@@ -517,6 +526,7 @@ Provide ready-to-use payloads with explanations.
         """Run the MCP server"""
         try:
             async with stdio_server() as (read_stream, write_stream):
+                # MODIFICATION START: Instantiate NotificationOptions and ExperimentalCapabilities
                 await self.server.run(
                     read_stream,
                     write_stream,
@@ -524,11 +534,12 @@ Provide ready-to-use payloads with explanations.
                         server_name="security-testing-mcp",
                         server_version="1.0.0",
                         capabilities=self.server.get_capabilities(
-                            notification_options={},
-                            experimental_capabilities={}
+                            notification_options=NotificationOptions(), # Use instantiated class
+                            experimental_capabilities=ExperimentalCapabilities() # Use instantiated class
                         ),
                     ),
                 )
+                # MODIFICATION END
         finally:
             await self.cleanup()
 

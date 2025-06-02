@@ -3,7 +3,7 @@
 MCP Server for AI-powered web security testing using OpenRouter
 """
 #from mcp.server.models import NotificationOptions
-from mcp.types import ServerCapabilities, NotificationOptions, ExperimentalCapabilities
+#from mcp.types import ServerCapabilities, NotificationOptions, ExperimentalCapabilities
 
 import asyncio
 import json
@@ -524,8 +524,8 @@ async def run(self):
                     server_name="security-testing-mcp",
                     server_version="1.0.0",
                     capabilities=self.server.get_capabilities(
-                        NotificationOptions(),
-                        ExperimentalCapabilities()
+                        notification_options={},
+                        experimental_capabilities={}
                     ),
                 ),
             )
